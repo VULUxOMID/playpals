@@ -14,9 +14,9 @@ SPOTIFY_CLIENT_SECRET="your_spotify_client_secret"
 SPOTIFY_REDIRECT_URI="http://localhost:3000/api/auth/callback/spotify"
 
 # Security Keys (Generate these securely)
-FIELD_ENCRYPTION_KEY="your-32-character-encryption-key-here"
-JWT_SECRET="your-jwt-secret-key-here"
-SESSION_SECRET="your-session-secret-key-here"
+FIELD_ENCRYPTION_KEY=your-64-character-hex-string-here
+JWT_SECRET=your-secure-hex-string-here
+SESSION_SECRET=your-secure-hex-string-here
 
 # Environment
 NODE_ENV="development"
@@ -25,19 +25,19 @@ NODE_ENV="development"
 ## Generating Secure Keys
 
 ### Field Encryption Key
-Generate a 32-byte (256-bit) encryption key:
+Generate a 32-byte (256-bit) encryption key represented as a 64-character hex string:
 ```bash
 node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 ```
 
 ### JWT Secret
-Generate a strong JWT secret:
+Generate a strong JWT secret with a minimum of 32 bytes (64 hex characters):
 ```bash
 node -e "console.log(require('crypto').randomBytes(64).toString('hex'))"
 ```
 
 ### Session Secret
-Generate a session secret:
+Generate a session secret with a minimum of 32 bytes (64 hex characters):
 ```bash
 node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 ```
@@ -94,8 +94,9 @@ node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 ### Test Field Encryption
 ```typescript
 // Verify tokens are encrypted in database
-const user = await prisma.user.findFirst();
-console.log('Raw access token:', user?.accessToken); // Should be encrypted
+// Prisma returns decrypted values; use a raw DB query to inspect stored ciphertext
+const result = await prisma.$queryRaw`SELECT access_token FROM "User" LIMIT 1`;
+console.log('Raw access token ciphertext:', result[0]?.access_token); // Should be encrypted
 ```
 
 ### Test Session Security

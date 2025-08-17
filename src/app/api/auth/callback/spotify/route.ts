@@ -73,7 +73,7 @@ export async function GET(request: NextRequest) {
     });
 
     // Create secure session
-    const { sessionToken, sessionId } = await createUserSession(user.id);
+    const { sessionId } = await createUserSession(user.id);
     const jwtToken = createSessionToken(user.id, sessionId);
 
     // Clear state cookie

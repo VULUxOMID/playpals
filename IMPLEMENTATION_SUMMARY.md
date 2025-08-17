@@ -94,9 +94,9 @@ CREATE TABLE "user_sessions" (
 
 ```env
 # Security Keys (generate with: npm run generate-keys)
-FIELD_ENCRYPTION_KEY="32-character-hex-string"
-JWT_SECRET="64-character-hex-string"
-SESSION_SECRET="32-character-hex-string"
+FIELD_ENCRYPTION_KEY=32-character-hex-string
+JWT_SECRET=64-character-hex-string
+SESSION_SECRET=32-character-hex-string
 
 # Database
 DATABASE_URL="postgresql://..."

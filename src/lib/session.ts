@@ -133,11 +133,11 @@ export async function invalidateSession(sessionToken: string): Promise<boolean> 
   try {
     const sessionTokenHash = hashSessionToken(sessionToken);
     
-    await prisma.userSession.update({
+    const result = await prisma.userSession.updateMany({
       where: { sessionTokenHash },
       data: { isActive: false },
     });
-    return true;
+    return result.count > 0;
   } catch (error) {
     console.error('Session invalidation error:', error);
     return false;
