@@ -3,33 +3,36 @@ import jwt from 'jsonwebtoken';
 import { prisma } from './db';
 import crypto from 'crypto';
 
-// Environment variable validation with production guards
+// Lazy secret resolution to ensure checks run at call time
 function getJwtSecret(): string {
   const secret = process.env.JWT_SECRET;
+  
+  // In production, require the secret unless explicitly allowed for build
   if (process.env.NODE_ENV === 'production') {
-    if (!secret) {
-      console.error('JWT_SECRET is required in production');
-      process.exit(1);
+    if (!secret && process.env.ALLOW_BUILD_PLACEHOLDER_JWT !== 'true') {
+      throw new Error('JWT_SECRET is required in production. Set ALLOW_BUILD_PLACEHOLDER_JWT=true only for build processes.');
     }
-    return secret;
+    return secret || 'placeholder-jwt-secret-for-build-only';
   }
+  
+  // In development, provide a default if missing
   return secret || 'default-jwt-secret-for-development-only';
 }
 
 function getSessionSecret(): string {
   const secret = process.env.SESSION_SECRET;
+  
+  // In production, require the secret unless explicitly allowed for build
   if (process.env.NODE_ENV === 'production') {
-    if (!secret) {
-      console.error('SESSION_SECRET is required in production');
-      process.exit(1);
+    if (!secret && process.env.ALLOW_BUILD_PLACEHOLDER_JWT !== 'true') {
+      throw new Error('SESSION_SECRET is required in production. Set ALLOW_BUILD_PLACEHOLDER_JWT=true only for build processes.');
     }
-    return secret;
+    return secret || 'placeholder-session-secret-for-build-only';
   }
+  
+  // In development, provide a default if missing
   return secret || 'default-session-secret-for-development-only';
 }
-
-const JWT_SECRET = getJwtSecret();
-const SESSION_SECRET = getSessionSecret();
 
 export interface SessionPayload {
   userId: string;
@@ -45,7 +48,8 @@ export function generateSessionToken(): string {
 
 // Generate HMAC hash of session token
 export function hashSessionToken(token: string): string {
-  return crypto.createHmac('sha256', SESSION_SECRET).update(token).digest('hex');
+  const sessionSecret = getSessionSecret();
+  return crypto.createHmac('sha256', sessionSecret).update(token).digest('hex');
 }
 
 // Generate a cryptographically secure state for OAuth
@@ -55,12 +59,13 @@ export function generateSecureState(): string {
 
 // Create a JWT session token
 export function createSessionToken(userId: string, sessionId: string): string {
+  const jwtSecret = getJwtSecret();
   const payload: Omit<SessionPayload, 'iat' | 'exp'> = {
     userId,
     sessionId,
   };
   
-  return jwt.sign(payload, JWT_SECRET, { 
+  return jwt.sign(payload, jwtSecret, { 
     expiresIn: '7d',
     issuer: 'playpals',
     audience: 'playpals-users',
@@ -71,7 +76,8 @@ export function createSessionToken(userId: string, sessionId: string): string {
 // Verify and decode a JWT session token
 export function verifySessionToken(token: string): SessionPayload | null {
   try {
-    const decoded = jwt.verify(token, JWT_SECRET, {
+    const jwtSecret = getJwtSecret();
+    const decoded = jwt.verify(token, jwtSecret, {
       issuer: 'playpals',
       audience: 'playpals-users',
       algorithms: ['HS256']

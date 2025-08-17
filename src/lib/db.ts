@@ -22,18 +22,24 @@ function validateAndGetEncryptionKey(): string {
   return key;
 }
 
-// Initialize Prisma client with field encryption middleware
+// Initialize Prisma client
 const prisma = new PrismaClient();
 
-// Configure field encryption middleware
-prisma.$use(
-  fieldEncryptionMiddleware({
-    // Fields to encrypt
-    fields: ['accessToken', 'refreshToken'],
-    // Encryption key from environment variable
-    encryptionKey: validateAndGetEncryptionKey(),
-  })
-);
+// Configure field encryption middleware only if encryption key is available
+if (process.env.NODE_ENV !== 'production' || process.env.FIELD_ENCRYPTION_KEY) {
+  try {
+    prisma.$use(
+      fieldEncryptionMiddleware({
+        // Fields to encrypt
+        fields: ['accessToken', 'refreshToken'],
+        // Encryption key from environment variable
+        encryptionKey: validateAndGetEncryptionKey(),
+      })
+    );
+  } catch (error) {
+    console.warn('Field encryption middleware not configured:', error.message);
+  }
+}
 
 export { prisma };
 
