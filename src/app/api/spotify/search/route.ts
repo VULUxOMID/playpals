@@ -15,14 +15,32 @@ export async function GET(request: NextRequest) {
     }
 
     const { searchParams } = new URL(request.url);
-    const query = searchParams.get('q');
-    const limit = parseInt(searchParams.get('limit') || '20');
-
+    
+    // Sanitize and validate query
+    const rawQuery = searchParams.get('q');
+    const query = rawQuery?.trim();
+    
     if (!query) {
       return NextResponse.json({ error: 'Search query is required' }, { status: 400 });
     }
+    
+    // Parse and validate limit with safe defaults
+    const limitParam = searchParams.get('limit');
+    let limit = parseInt(limitParam || '20', 10);
+    if (!Number.isFinite(limit) || limit < 1) {
+      limit = 20;
+    } else if (limit > 50) {
+      limit = 50;
+    }
+    
+    // Parse and validate offset with safe defaults
+    const offsetParam = searchParams.get('offset');
+    let offset = parseInt(offsetParam || '0', 10);
+    if (!Number.isFinite(offset) || offset < 0) {
+      offset = 0;
+    }
 
-    const results = await searchTracks(user.accessToken, query, limit);
+    const results = await searchTracks(user.accessToken, query, limit, offset);
     
     return NextResponse.json({
       tracks: {
@@ -46,7 +64,7 @@ export async function GET(request: NextRequest) {
         })) || [],
         total: results.tracks?.total || 0,
         limit: results.tracks?.limit || limit,
-        offset: results.tracks?.offset || 0
+        offset: results.tracks?.offset || offset
       }
     });
   } catch (error) {

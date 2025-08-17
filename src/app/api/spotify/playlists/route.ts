@@ -15,8 +15,22 @@ export async function GET(request: NextRequest) {
     }
 
     const { searchParams } = new URL(request.url);
-    const limit = parseInt(searchParams.get('limit') || '20');
-    const offset = parseInt(searchParams.get('offset') || '0');
+    
+    // Parse and validate limit with safe defaults
+    const limitParam = searchParams.get('limit');
+    let limit = parseInt(limitParam || '20', 10);
+    if (!Number.isFinite(limit) || limit < 1) {
+      limit = 20;
+    } else if (limit > 50) {
+      limit = 50;
+    }
+    
+    // Parse and validate offset with safe defaults
+    const offsetParam = searchParams.get('offset');
+    let offset = parseInt(offsetParam || '0', 10);
+    if (!Number.isFinite(offset) || offset < 0) {
+      offset = 0;
+    }
 
     const playlists = await getUserPlaylists(user.accessToken, limit, offset);
     

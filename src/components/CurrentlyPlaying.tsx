@@ -28,9 +28,13 @@ export default function CurrentlyPlaying() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    const abortController = new AbortController();
+    
     const fetchCurrentTrack = async () => {
       try {
-        const response = await fetch('/api/spotify/currently-playing');
+        const response = await fetch('/api/spotify/currently-playing', {
+          signal: abortController.signal
+        });
         if (response.ok) {
           const data = await response.json();
           setCurrentTrack(data);
@@ -39,10 +43,17 @@ export default function CurrentlyPlaying() {
         } else {
           setError('Failed to fetch current track');
         }
-      } catch {
+      } catch (error) {
+        // Ignore AbortError to prevent state updates after unmount
+        if (error instanceof Error && error.name === 'AbortError') {
+          return;
+        }
         setError('Failed to connect to Spotify');
       } finally {
-        setLoading(false);
+        // Only update loading state if not aborted
+        if (!abortController.signal.aborted) {
+          setLoading(false);
+        }
       }
     };
 
@@ -51,7 +62,10 @@ export default function CurrentlyPlaying() {
     // Poll for updates every 30 seconds
     const interval = setInterval(fetchCurrentTrack, 30000);
     
-    return () => clearInterval(interval);
+    return () => {
+      clearInterval(interval);
+      abortController.abort();
+    };
   }, []);
 
   if (loading) {
@@ -143,7 +157,8 @@ export default function CurrentlyPlaying() {
   }
 
   const track = currentTrack.item;
-  const progress = ((currentTrack.progress_ms || 0) / track.duration_ms) * 100;
+  const safeDuration = (track.duration_ms && track.duration_ms > 0) ? track.duration_ms : 1;
+  const progress = ((currentTrack.progress_ms || 0) / safeDuration) * 100;
 
   return (
     <Card className="bg-gray-800/50 border-gray-700">
