@@ -10,7 +10,7 @@ export const spotifyApi = new SpotifyWebApi({
   clientId: SPOTIFY_CLIENT_ID || 'placeholder-client-id',
   clientSecret: SPOTIFY_CLIENT_SECRET || 'placeholder-client-secret',
   redirectUri: NEXT_PUBLIC_APP_URL 
-    ? `${NEXT_PUBLIC_APP_URL}/api/auth/callback/spotify`
+    ? `${NEXT_PUBLIC_APP_URL.replace(/\/$/, '')}/api/auth/callback/spotify`
     : 'http://localhost:3000/api/auth/callback/spotify',
 });
 
@@ -50,11 +50,14 @@ export function validateSpotifyConfig() {
   // Update spotifyApi instance with real credentials
   spotifyApi.setClientId(SPOTIFY_CLIENT_ID);
   spotifyApi.setClientSecret(SPOTIFY_CLIENT_SECRET);
-  spotifyApi.setRedirectURI(`${NEXT_PUBLIC_APP_URL}/api/auth/callback/spotify`);
+  
+  // Ensure no double slashes in redirect URI
+  const baseUrl = NEXT_PUBLIC_APP_URL.replace(/\/$/, ''); // Remove trailing slash
+  spotifyApi.setRedirectURI(`${baseUrl}/api/auth/callback/spotify`);
   
   if (process.env.NODE_ENV === 'development') {
     console.log('Spotify configuration validated successfully');
-    console.log('Redirect URI set to:', `${NEXT_PUBLIC_APP_URL}/api/auth/callback/spotify`);
+    console.log('Redirect URI set to:', `${baseUrl}/api/auth/callback/spotify`);
   }
   credentialsValidated = true;
 }

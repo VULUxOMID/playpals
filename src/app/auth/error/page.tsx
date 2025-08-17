@@ -1,12 +1,13 @@
 import Link from 'next/link';
 import { AlertTriangle } from 'lucide-react';
 
-export default function AuthErrorPage({
+export default async function AuthErrorPage({
   searchParams,
 }: {
   searchParams: { error?: string };
 }) {
-  const error = searchParams.error;
+  const params = await searchParams;
+  const error = params.error;
   
   const getErrorMessage = (error: string) => {
     switch (error) {
