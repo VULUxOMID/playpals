@@ -1,20 +1,24 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 
-export async function GET(request: NextRequest) {
-  // Only allow in development or with a secret key
-  const debugKey = request.nextUrl.searchParams.get('key');
-  if (process.env.NODE_ENV === 'production' && debugKey !== process.env.DEBUG_SECRET_KEY) {
-    return new NextResponse('Unauthorized', { status: 401 });
+export async function GET() {
+  try {
+    // Never return actual secrets. Only indicate presence.
+    const present = (v?: string) => (v && v.length > 0 ? 'SET' : 'UNSET');
+
+    const envStatus = {
+      SPOTIFY_CLIENT_ID: present(process.env.SPOTIFY_CLIENT_ID),   // server-only
+      SPOTIFY_CLIENT_SECRET: present(process.env.SPOTIFY_CLIENT_SECRET), // server-only
+      NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL || 'UNSET',   // safe to expose
+      NODE_ENV: process.env.NODE_ENV || 'UNSET',                           // helpful for context
+    };
+
+    console.log('Debug endpoint called, environment status:', envStatus);
+    return NextResponse.json(envStatus);
+  } catch (error) {
+    console.error('Debug endpoint error:', error);
+    return NextResponse.json(
+      { error: 'Failed to read environment variables' },
+      { status: 500 }
+    );
   }
-
-  const envVars = {
-    NODE_ENV: process.env.NODE_ENV,
-    SPOTIFY_CLIENT_ID: process.env.SPOTIFY_CLIENT_ID ? 'SET' : 'NOT SET',
-    SPOTIFY_CLIENT_SECRET: process.env.SPOTIFY_CLIENT_SECRET ? 'SET' : 'NOT SET',
-    NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL,
-    DATABASE_URL: process.env.DATABASE_URL ? 'SET' : 'NOT SET',
-    FIELD_ENCRYPTION_KEY: process.env.FIELD_ENCRYPTION_KEY ? 'SET' : 'NOT SET',
-  };
-
-  return NextResponse.json(envVars);
 }

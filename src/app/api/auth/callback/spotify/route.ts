@@ -5,8 +5,13 @@ import { cookies } from 'next/headers';
 import { createUserSession, createSessionToken } from '@/lib/session';
 
 export async function GET(request: NextRequest) {
+  console.log('=== Spotify OAuth Callback Route Called ===');
+  console.log('Request URL:', request.url);
+  console.log('User Agent:', request.headers.get('user-agent'));
+  
   try {
     // Validate Spotify configuration at runtime
+    console.log('Validating Spotify configuration...');
     validateSpotifyConfig();
     
     const searchParams = request.nextUrl.searchParams;
@@ -14,8 +19,14 @@ export async function GET(request: NextRequest) {
     const state = searchParams.get('state');
     const error = searchParams.get('error');
     
+    console.log('OAuth callback parameters:');
+    console.log('- code:', code ? 'PRESENT' : 'MISSING');
+    console.log('- state:', state ? 'PRESENT' : 'MISSING');
+    console.log('- error:', error || 'NONE');
+    
     const cookieStore = await cookies();
     const storedState = cookieStore.get('spotify_state')?.value;
+    console.log('- stored state:', storedState ? 'PRESENT' : 'MISSING');
 
     if (error) {
       return NextResponse.redirect(new URL('/auth/error?error=access_denied', request.url));

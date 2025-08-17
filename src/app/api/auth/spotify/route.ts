@@ -3,8 +3,13 @@ import { spotifyApi, validateSpotifyConfig } from '@/lib/spotify';
 import { generateSecureState } from '@/lib/session';
 
 export async function GET(request: NextRequest) {
+  console.log('=== Spotify OAuth Route Called ===');
+  console.log('Request URL:', request.url);
+  console.log('User Agent:', request.headers.get('user-agent'));
+  
   try {
     // Validate Spotify configuration at runtime
+    console.log('Validating Spotify configuration...');
     validateSpotifyConfig();
     
     const scopes = [
@@ -24,17 +29,23 @@ export async function GET(request: NextRequest) {
   ];
 
   const state = generateSecureState();
+  console.log('Generated state:', state);
   
-    // Store state in session/cookie for security
-    const response = NextResponse.redirect(spotifyApi.createAuthorizeURL(scopes, state));
-    response.cookies.set('spotify_state', state, { 
-      httpOnly: true, 
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      maxAge: 60 * 10 // 10 minutes
-    });
-    
-    return response;
+  // Create authorize URL
+  const authorizeURL = spotifyApi.createAuthorizeURL(scopes, state);
+  console.log('Spotify authorize URL:', authorizeURL);
+  
+  // Store state in session/cookie for security
+  const response = NextResponse.redirect(authorizeURL);
+  response.cookies.set('spotify_state', state, { 
+    httpOnly: true, 
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax',
+    maxAge: 60 * 10 // 10 minutes
+  });
+  
+  console.log('Redirecting to Spotify OAuth...');
+  return response;
   } catch (error) {
     console.error('Spotify OAuth initialization error:', error);
     

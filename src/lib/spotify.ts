@@ -19,22 +19,30 @@ let credentialsValidated = false;
 
 // Validate environment variables and update spotifyApi with real credentials
 export function validateSpotifyConfig() {
-  console.log('Validating Spotify configuration...');
+  console.log('=== Spotify Configuration Validation ===');
   console.log('NODE_ENV:', process.env.NODE_ENV);
   console.log('SPOTIFY_CLIENT_ID:', SPOTIFY_CLIENT_ID ? 'SET' : 'NOT SET');
   console.log('SPOTIFY_CLIENT_SECRET:', SPOTIFY_CLIENT_SECRET ? 'SET' : 'NOT SET');
   console.log('NEXT_PUBLIC_APP_URL:', NEXT_PUBLIC_APP_URL);
+  
+  // Runtime environment check for debugging
+  console.log('Runtime env check:', {
+    hasId: !!process.env.SPOTIFY_CLIENT_ID,
+    hasSecret: !!process.env.SPOTIFY_CLIENT_SECRET,
+    hasUrl: !!process.env.NEXT_PUBLIC_APP_URL,
+    nodeEnv: process.env.NODE_ENV
+  });
 
   if (!SPOTIFY_CLIENT_ID) {
-    throw new Error('SPOTIFY_CLIENT_ID environment variable is required. Please set it in your .env file.');
+    throw new Error('SPOTIFY_CLIENT_ID environment variable is required. Please set it in your Vercel environment variables.');
   }
 
   if (!SPOTIFY_CLIENT_SECRET) {
-    throw new Error('SPOTIFY_CLIENT_SECRET environment variable is required. Please set it in your .env file.');
+    throw new Error('SPOTIFY_CLIENT_SECRET environment variable is required. Please set it in your Vercel environment variables.');
   }
 
   if (!NEXT_PUBLIC_APP_URL) {
-    throw new Error('NEXT_PUBLIC_APP_URL environment variable is required. Please set it in your .env file.');
+    throw new Error('NEXT_PUBLIC_APP_URL environment variable is required. Please set it in your Vercel environment variables.');
   }
 
   // Update spotifyApi instance with real credentials
@@ -43,6 +51,7 @@ export function validateSpotifyConfig() {
   spotifyApi.setRedirectURI(`${NEXT_PUBLIC_APP_URL}/api/auth/callback/spotify`);
   
   console.log('Spotify configuration validated successfully');
+  console.log('Redirect URI set to:', `${NEXT_PUBLIC_APP_URL}/api/auth/callback/spotify`);
   credentialsValidated = true;
 }
 
