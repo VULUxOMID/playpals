@@ -14,7 +14,10 @@ export const spotifyApi = new SpotifyWebApi({
     : 'http://localhost:3000/api/auth/callback/spotify',
 });
 
-// Validate environment variables at runtime
+// Track if credentials have been validated and set
+let credentialsValidated = false;
+
+// Validate environment variables and update spotifyApi with real credentials
 export function validateSpotifyConfig() {
   if (!SPOTIFY_CLIENT_ID) {
     throw new Error('SPOTIFY_CLIENT_ID environment variable is required. Please set it in your .env file.');
@@ -26,6 +29,20 @@ export function validateSpotifyConfig() {
 
   if (!NEXT_PUBLIC_APP_URL) {
     throw new Error('NEXT_PUBLIC_APP_URL environment variable is required. Please set it in your .env file.');
+  }
+
+  // Update spotifyApi instance with real credentials
+  spotifyApi.setClientId(SPOTIFY_CLIENT_ID);
+  spotifyApi.setClientSecret(SPOTIFY_CLIENT_SECRET);
+  spotifyApi.setRedirectURI(`${NEXT_PUBLIC_APP_URL}/api/auth/callback/spotify`);
+  
+  credentialsValidated = true;
+}
+
+// Ensure credentials are validated before any Spotify API calls
+function ensureCredentialsValidated() {
+  if (!credentialsValidated) {
+    validateSpotifyConfig();
   }
 }
 
@@ -41,6 +58,7 @@ export function setSpotifyRefreshToken(refreshToken: string) {
 
 // Get user profile from Spotify
 export async function getSpotifyProfile(accessToken: string) {
+  ensureCredentialsValidated();
   setSpotifyAccessToken(accessToken);
   
   try {
@@ -54,6 +72,7 @@ export async function getSpotifyProfile(accessToken: string) {
 
 // Get currently playing track
 export async function getCurrentlyPlaying(accessToken: string) {
+  ensureCredentialsValidated();
   setSpotifyAccessToken(accessToken);
   
   try {
@@ -67,6 +86,7 @@ export async function getCurrentlyPlaying(accessToken: string) {
 
 // Get user's playlists
 export async function getUserPlaylists(accessToken: string, limit = 20, offset = 0) {
+  ensureCredentialsValidated();
   setSpotifyAccessToken(accessToken);
   
   try {
@@ -80,6 +100,7 @@ export async function getUserPlaylists(accessToken: string, limit = 20, offset =
 
 // Search for tracks
 export async function searchTracks(accessToken: string, query: string, limit = 20) {
+  ensureCredentialsValidated();
   setSpotifyAccessToken(accessToken);
   
   try {
@@ -93,6 +114,7 @@ export async function searchTracks(accessToken: string, query: string, limit = 2
 
 // Get recently played tracks
 export async function getRecentlyPlayed(accessToken: string, limit = 20) {
+  ensureCredentialsValidated();
   setSpotifyAccessToken(accessToken);
   
   try {
@@ -112,13 +134,15 @@ export async function createPlaylist(
   description?: string,
   isPublic = false
 ) {
+  ensureCredentialsValidated();
   setSpotifyAccessToken(accessToken);
   
   try {
     const playlist = await spotifyApi.createPlaylist(userId, {
-      name,
       description,
       public: isPublic,
+    }, {
+      name,
     });
     return playlist.body;
   } catch (error) {
@@ -133,6 +157,7 @@ export async function addTracksToPlaylist(
   playlistId: string,
   trackUris: string[]
 ) {
+  ensureCredentialsValidated();
   setSpotifyAccessToken(accessToken);
   
   try {
@@ -146,6 +171,7 @@ export async function addTracksToPlaylist(
 
 // Refresh access token
 export async function refreshAccessToken(refreshToken: string) {
+  ensureCredentialsValidated();
   setSpotifyRefreshToken(refreshToken);
   
   try {
@@ -154,5 +180,23 @@ export async function refreshAccessToken(refreshToken: string) {
   } catch (error) {
     console.error('Error refreshing access token:', error);
     throw error;
+  }
+}
+
+// Initialize Spotify configuration during app startup
+export function initializeSpotifyConfig() {
+  // Only validate and set credentials if we're not in a build environment
+  if (process.env.NODE_ENV !== 'production' || process.env.SPOTIFY_CLIENT_ID) {
+    validateSpotifyConfig();
+  }
+}
+
+// Auto-initialize in development
+if (process.env.NODE_ENV === 'development') {
+  try {
+    initializeSpotifyConfig();
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    console.warn('Spotify configuration not available in development:', errorMessage);
   }
 }
