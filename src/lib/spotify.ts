@@ -19,6 +19,12 @@ let credentialsValidated = false;
 
 // Validate environment variables and update spotifyApi with real credentials
 export function validateSpotifyConfig() {
+  console.log('Validating Spotify configuration...');
+  console.log('NODE_ENV:', process.env.NODE_ENV);
+  console.log('SPOTIFY_CLIENT_ID:', SPOTIFY_CLIENT_ID ? 'SET' : 'NOT SET');
+  console.log('SPOTIFY_CLIENT_SECRET:', SPOTIFY_CLIENT_SECRET ? 'SET' : 'NOT SET');
+  console.log('NEXT_PUBLIC_APP_URL:', NEXT_PUBLIC_APP_URL);
+
   if (!SPOTIFY_CLIENT_ID) {
     throw new Error('SPOTIFY_CLIENT_ID environment variable is required. Please set it in your .env file.');
   }
@@ -36,6 +42,7 @@ export function validateSpotifyConfig() {
   spotifyApi.setClientSecret(SPOTIFY_CLIENT_SECRET);
   spotifyApi.setRedirectURI(`${NEXT_PUBLIC_APP_URL}/api/auth/callback/spotify`);
   
+  console.log('Spotify configuration validated successfully');
   credentialsValidated = true;
 }
 

@@ -5,26 +5,26 @@ import { cookies } from 'next/headers';
 import { createUserSession, createSessionToken } from '@/lib/session';
 
 export async function GET(request: NextRequest) {
-  // Validate Spotify configuration at runtime
-  validateSpotifyConfig();
-  
-  const searchParams = request.nextUrl.searchParams;
-  const code = searchParams.get('code');
-  const state = searchParams.get('state');
-  const error = searchParams.get('error');
-  
-  const cookieStore = await cookies();
-  const storedState = cookieStore.get('spotify_state')?.value;
-
-  if (error) {
-    return NextResponse.redirect(new URL('/auth/error?error=access_denied', request.url));
-  }
-
-  if (!code || !state || !storedState || state !== storedState) {
-    return NextResponse.redirect(new URL('/auth/error?error=invalid_state', request.url));
-  }
-
   try {
+    // Validate Spotify configuration at runtime
+    validateSpotifyConfig();
+    
+    const searchParams = request.nextUrl.searchParams;
+    const code = searchParams.get('code');
+    const state = searchParams.get('state');
+    const error = searchParams.get('error');
+    
+    const cookieStore = await cookies();
+    const storedState = cookieStore.get('spotify_state')?.value;
+
+    if (error) {
+      return NextResponse.redirect(new URL('/auth/error?error=access_denied', request.url));
+    }
+
+    if (!code || !state || !storedState || state !== storedState) {
+      return NextResponse.redirect(new URL('/auth/error?error=invalid_state', request.url));
+    }
+
     // Exchange code for tokens
     const data = await spotifyApi.authorizationCodeGrant(code);
     const { access_token, refresh_token, expires_in } = data.body;
@@ -94,6 +94,18 @@ export async function GET(request: NextRequest) {
     return response;
   } catch (error) {
     console.error('Spotify OAuth error:', error);
-    return NextResponse.redirect(new URL('/auth/error?error=oauth_error', request.url));
+    
+    // Return a more user-friendly error response
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    return new NextResponse(
+      JSON.stringify({ 
+        error: 'Spotify authentication failed. Please try again or contact support.',
+        details: process.env.NODE_ENV === 'development' ? errorMessage : undefined
+      }),
+      { 
+        status: 500,
+        headers: { 'Content-Type': 'application/json' }
+      }
+    );
   }
 }
