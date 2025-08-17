@@ -27,12 +27,26 @@ export async function GET(request: NextRequest) {
     const cookieStore = await cookies();
     const storedState = cookieStore.get('spotify_state')?.value;
     console.log('- stored state:', storedState ? 'PRESENT' : 'MISSING');
+    
+    // Detailed state debugging
+    if (storedState && state) {
+      console.log('State comparison:');
+      console.log('- received state:', state.substring(0, 10) + '...');
+      console.log('- stored state:', storedState.substring(0, 10) + '...');
+      console.log('- states match:', state === storedState);
+    }
 
     if (error) {
       return NextResponse.redirect(new URL('/auth/error?error=access_denied', request.url));
     }
 
-    if (!code || !state || !storedState || state !== storedState) {
+    if (!code || !state || !storedState) {
+      console.log('Missing required parameters:', { code: !!code, state: !!state, storedState: !!storedState });
+      return NextResponse.redirect(new URL('/auth/error?error=invalid_state', request.url));
+    }
+
+    if (state !== storedState) {
+      console.log('State mismatch detected - this might be a cookie domain issue');
       return NextResponse.redirect(new URL('/auth/error?error=invalid_state', request.url));
     }
 
