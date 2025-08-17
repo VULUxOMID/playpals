@@ -46,7 +46,7 @@ export async function GET(request: NextRequest) {
   
   console.log('Redirecting to Spotify OAuth...');
   return response;
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Spotify OAuth initialization error:', error);
     
     // Check which specific environment variable is missing
@@ -59,12 +59,17 @@ export async function GET(request: NextRequest) {
       ? `Missing environment variables: ${missingVars.join(', ')}. Please set them in Vercel.`
       : 'Spotify authentication is not properly configured. Please contact support.';
     
+    // Safely extract error message
+    const details = process.env.NODE_ENV === 'development' 
+      ? (error instanceof Error ? error.message : String(error))
+      : undefined;
+    
     // Return a more user-friendly error response
     return new NextResponse(
       JSON.stringify({ 
         error: errorMessage,
         missing: missingVars,
-        details: process.env.NODE_ENV === 'development' ? error.message : undefined
+        details
       }),
       { 
         status: 500,

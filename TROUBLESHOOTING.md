@@ -6,10 +6,16 @@ If the Spotify login button doesn't work or you get a 500 error, follow these st
 
 ### 1. Check Environment Variables
 
-Visit this URL in your browser to check if environment variables are set correctly:
+**Development**: Visit this URL in your browser to check if environment variables are set correctly:
 ```
-https://www.playpals.online/api/debug/env
+http://localhost:3000/api/debug/env
 ```
+
+**Production**: Use the authenticated debug endpoint with your secret key:
+```bash
+curl -H "Authorization: Bearer YOUR_DEBUG_SECRET_KEY" https://www.playpals.online/api/debug/env
+```
+Note: Set a `DEBUG_SECRET_KEY` environment variable in production and use it in the Authorization header to access this endpoint securely.
 
 You should see something like:
 ```json
@@ -33,10 +39,16 @@ If any show "NOT SET", you need to add them in Vercel:
 
 ```
 NEXT_PUBLIC_APP_URL=https://www.playpals.online
-SPOTIFY_CLIENT_ID=cf1cd05ee8794f2fb17aa61d80e074aa
-SPOTIFY_CLIENT_SECRET=b0d28ffbc8674a3ebdaa10322d56df99
+SPOTIFY_CLIENT_ID=<your_spotify_client_id>
+SPOTIFY_CLIENT_SECRET=<your_spotify_client_secret>
 DATABASE_URL=your_postgresql_database_url
 ```
+
+**⚠️ Security Notice**: The previous version of this guide contained exposed Spotify credentials. If you used those credentials:
+1. **Immediately revoke the old credentials** in your [Spotify Dashboard](https://developer.spotify.com/dashboard)
+2. **Generate new credentials** in the Spotify Dashboard
+3. **Update your Vercel environment variables** with the new credentials
+4. **Redeploy your application** to use the new credentials
 
 ### 3. Check Spotify App Configuration
 
