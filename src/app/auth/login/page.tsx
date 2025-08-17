@@ -1,6 +1,31 @@
 import Link from 'next/link';
 
 export default function LoginPage() {
+  // Client-side environment check (only for NEXT_PUBLIC_* variables)
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL;
+  
+  if (!appUrl) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 flex items-center justify-center p-4">
+        <div className="w-full max-w-md">
+          <div className="bg-red-900/50 border border-red-700 rounded-lg p-6 shadow-xl">
+            <h2 className="text-xl font-semibold text-red-400 mb-4">Configuration Error</h2>
+            <p className="text-red-300 text-sm mb-4">
+              NEXT_PUBLIC_APP_URL environment variable is not set. Please check your Vercel environment variables.
+            </p>
+            <div className="text-red-200 text-xs">
+              <p>Required environment variables:</p>
+              <ul className="list-disc list-inside mt-2">
+                <li>SPOTIFY_CLIENT_ID</li>
+                <li>SPOTIFY_CLIENT_SECRET</li>
+                <li>NEXT_PUBLIC_APP_URL</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 flex items-center justify-center p-4">
       <div className="w-full max-w-md">

@@ -49,10 +49,21 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error('Spotify OAuth initialization error:', error);
     
+    // Check which specific environment variable is missing
+    const missingVars = [];
+    if (!process.env.SPOTIFY_CLIENT_ID) missingVars.push('SPOTIFY_CLIENT_ID');
+    if (!process.env.SPOTIFY_CLIENT_SECRET) missingVars.push('SPOTIFY_CLIENT_SECRET');
+    if (!process.env.NEXT_PUBLIC_APP_URL) missingVars.push('NEXT_PUBLIC_APP_URL');
+    
+    const errorMessage = missingVars.length > 0 
+      ? `Missing environment variables: ${missingVars.join(', ')}. Please set them in Vercel.`
+      : 'Spotify authentication is not properly configured. Please contact support.';
+    
     // Return a more user-friendly error response
     return new NextResponse(
       JSON.stringify({ 
-        error: 'Spotify authentication is not properly configured. Please contact support.',
+        error: errorMessage,
+        missing: missingVars,
         details: process.env.NODE_ENV === 'development' ? error.message : undefined
       }),
       { 
