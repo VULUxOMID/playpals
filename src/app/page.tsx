@@ -1,9 +1,19 @@
+import { currentUser } from '@clerk/nextjs/server';
+import { redirect } from 'next/navigation';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Music, Users, Heart, TrendingUp, Play, Sparkles } from "lucide-react";
+import Link from "next/link";
 
-export default function Home() {
+export default async function Home() {
+  const user = await currentUser();
+  
+  // Redirect authenticated users to dashboard
+  if (user) {
+    redirect('/dashboard');
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900">
       {/* Header */}
@@ -22,9 +32,11 @@ export default function Home() {
             <a href="#about" className="text-gray-300 hover:text-white transition-colors">
               About
             </a>
-            <Button variant="outline" className="border-green-500 text-green-500 hover:bg-green-500 hover:text-white">
-              Sign In
-            </Button>
+            <Link href="/sign-in">
+              <Button variant="outline" className="border-green-500 text-green-500 hover:bg-green-500 hover:text-white">
+                Sign In
+              </Button>
+            </Link>
           </div>
         </nav>
       </header>
@@ -48,13 +60,17 @@ export default function Home() {
           </p>
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button size="lg" className="bg-green-500 hover:bg-green-600 text-white px-8 py-3">
-              <Play className="w-5 h-5 mr-2" />
-              Start Listening Together
-            </Button>
-            <Button size="lg" variant="outline" className="border-gray-600 text-gray-300 hover:bg-gray-800 px-8 py-3">
-              Learn More
-            </Button>
+            <Link href="/sign-up">
+              <Button size="lg" className="bg-green-500 hover:bg-green-600 text-white px-8 py-3">
+                <Play className="w-5 h-5 mr-2" />
+                Start Listening Together
+              </Button>
+            </Link>
+            <Link href="/sign-in">
+              <Button size="lg" variant="outline" className="border-gray-600 text-gray-300 hover:bg-gray-800 px-8 py-3">
+                Sign In
+              </Button>
+            </Link>
           </div>
         </div>
       </section>
@@ -98,7 +114,7 @@ export default function Home() {
               </div>
               <CardTitle className="text-white">Music Discovery</CardTitle>
               <CardDescription className="text-gray-400">
-                Discover new tracks through your social network and personalized recommendations
+                Discover new tracks and artists through your friends' listening habits
               </CardDescription>
             </CardHeader>
           </Card>
@@ -106,7 +122,7 @@ export default function Home() {
           <Card className="bg-gray-800/50 border-gray-700 hover:border-green-500/50 transition-colors">
             <CardHeader>
               <div className="w-12 h-12 bg-green-500/20 rounded-lg flex items-center justify-center mb-4">
-                <Music className="w-6 h-6 text-green-500" />
+                <Play className="w-6 h-6 text-green-500" />
               </div>
               <CardTitle className="text-white">Listening Parties</CardTitle>
               <CardDescription className="text-gray-400">
@@ -118,11 +134,11 @@ export default function Home() {
           <Card className="bg-gray-800/50 border-gray-700 hover:border-green-500/50 transition-colors">
             <CardHeader>
               <div className="w-12 h-12 bg-green-500/20 rounded-lg flex items-center justify-center mb-4">
-                <TrendingUp className="w-6 h-6 text-green-500" />
+                <Music className="w-6 h-6 text-green-500" />
               </div>
-              <CardTitle className="text-white">Analytics & Insights</CardTitle>
+              <CardTitle className="text-white">Spotify Integration</CardTitle>
               <CardDescription className="text-gray-400">
-                Track your listening habits and compare your taste with friends
+                Seamlessly connect with your Spotify account and sync your music library
               </CardDescription>
             </CardHeader>
           </Card>
@@ -130,11 +146,11 @@ export default function Home() {
           <Card className="bg-gray-800/50 border-gray-700 hover:border-green-500/50 transition-colors">
             <CardHeader>
               <div className="w-12 h-12 bg-green-500/20 rounded-lg flex items-center justify-center mb-4">
-                <Sparkles className="w-6 h-6 text-green-500" />
+                <TrendingUp className="w-6 h-6 text-green-500" />
               </div>
-              <CardTitle className="text-white">Achievement System</CardTitle>
+              <CardTitle className="text-white">Music Analytics</CardTitle>
               <CardDescription className="text-gray-400">
-                Unlock badges and milestones as you discover and share music
+                Track your listening habits and discover your music taste patterns
               </CardDescription>
             </CardHeader>
           </Card>
@@ -142,40 +158,41 @@ export default function Home() {
       </section>
 
       {/* CTA Section */}
-      <section className="container mx-auto px-4 py-20">
-        <Card className="bg-gradient-to-r from-green-500/10 to-blue-500/10 border-green-500/20">
-          <CardContent className="text-center py-16">
-            <h2 className="text-3xl font-bold text-white mb-4">Ready to Start Your Musical Journey?</h2>
-            <p className="text-xl text-gray-300 mb-8">
-              Join thousands of music lovers who are already discovering and sharing music together
-            </p>
-            <Button size="lg" className="bg-green-500 hover:bg-green-600 text-white px-8 py-3">
-              <Play className="w-5 h-5 mr-2" />
-              Get Started Now
-            </Button>
-          </CardContent>
-        </Card>
+      <section className="container mx-auto px-4 py-20 text-center">
+        <div className="max-w-3xl mx-auto">
+          <h2 className="text-4xl font-bold text-white mb-6">
+            Ready to Start Your Musical Journey?
+          </h2>
+          <p className="text-xl text-gray-300 mb-8">
+            Join thousands of music lovers who are already discovering and sharing music together.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Link href="/sign-up">
+              <Button size="lg" className="bg-green-500 hover:bg-green-600 text-white px-8 py-3">
+                Get Started Free
+              </Button>
+            </Link>
+            <Link href="/sign-in">
+              <Button size="lg" variant="outline" className="border-gray-600 text-gray-300 hover:bg-gray-800 px-8 py-3">
+                Already have an account? Sign In
+              </Button>
+            </Link>
+          </div>
+        </div>
       </section>
 
       {/* Footer */}
-      <footer className="border-t border-gray-800 py-12">
-        <div className="container mx-auto px-4">
-          <div className="flex flex-col md:flex-row justify-between items-center">
-            <div className="flex items-center space-x-2 mb-4 md:mb-0">
-              <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center">
-                <Music className="w-4 h-4 text-white" />
-              </div>
-              <span className="text-xl font-bold text-white">Playpals</span>
+      <footer className="border-t border-gray-800 py-8">
+        <div className="container mx-auto px-4 text-center">
+          <div className="flex items-center justify-center space-x-2 mb-4">
+            <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center">
+              <Music className="w-4 h-4 text-white" />
             </div>
-            <div className="flex space-x-6 text-gray-400">
-              <a href="#" className="hover:text-white transition-colors">Privacy</a>
-              <a href="#" className="hover:text-white transition-colors">Terms</a>
-              <a href="#" className="hover:text-white transition-colors">Support</a>
-            </div>
+            <span className="text-lg font-bold text-white">Playpals</span>
           </div>
-          <div className="text-center mt-8 text-gray-500">
-            <p>&copy; 2024 Playpals. Made with ❤️ for music lovers.</p>
-          </div>
+          <p className="text-gray-400">
+            © 2024 Playpals. Made with ❤️ for music lovers everywhere.
+          </p>
         </div>
       </footer>
     </div>
