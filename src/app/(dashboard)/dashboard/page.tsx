@@ -1,8 +1,8 @@
 import { getCurrentUser } from '@/lib/auth';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Music, Users, Heart, TrendingUp, Play, Clock, Plus, Search } from 'lucide-react';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Music, Users, Heart, Play, Clock, Plus, Search } from 'lucide-react';
 import Link from 'next/link';
 
 export default async function DashboardPage() {
@@ -86,7 +86,7 @@ export default async function DashboardPage() {
           <CardHeader>
             <CardTitle className="text-white">Recent Activity</CardTitle>
             <CardDescription className="text-gray-400">
-              What's happening in your music world
+              What&apos;s happening in your music world
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -97,7 +97,7 @@ export default async function DashboardPage() {
               <div className="flex-1">
                 <p className="text-sm text-white">
                   <span className="font-medium">John Doe</span> started listening to{' '}
-                  <span className="text-green-400">"Bohemian Rhapsody"</span>
+                  <span className="text-green-400">&quot;Bohemian Rhapsody&quot;</span>
                 </p>
                 <p className="text-xs text-gray-400">2 minutes ago</p>
               </div>
@@ -110,7 +110,7 @@ export default async function DashboardPage() {
               <div className="flex-1">
                 <p className="text-sm text-white">
                   <span className="font-medium">Alice Smith</span> added{' '}
-                  <span className="text-green-400">"Shape of You"</span> to your playlist
+                  <span className="text-green-400">&quot;Shape of You&quot;</span> to your playlist
                 </p>
                 <p className="text-xs text-gray-400">15 minutes ago</p>
               </div>
@@ -199,7 +199,7 @@ export default async function DashboardPage() {
         <CardHeader>
           <CardTitle className="text-white">Currently Playing</CardTitle>
           <CardDescription className="text-gray-400">
-            What you're listening to right now
+            What you&apos;re listening to right now
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -209,7 +209,7 @@ export default async function DashboardPage() {
             </div>
             <div className="flex-1">
               <p className="text-white font-medium">Not currently playing</p>
-              <p className="text-sm text-gray-400">Connect your Spotify account to see what you're listening to</p>
+              <p className="text-sm text-gray-400">Connect your Spotify account to see what you&apos;re listening to</p>
             </div>
             <Link 
               href="/connect-spotify"

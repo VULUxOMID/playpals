@@ -58,7 +58,7 @@ export function validateEncryptionKey(key: string): boolean {
     // Verify the hex decodes to exactly 32 bytes
     const buffer = Buffer.from(key, 'hex');
     return buffer.length === 32;
-  } catch (error) {
+  } catch {
     return false;
   }
 }

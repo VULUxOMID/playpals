@@ -1,5 +1,4 @@
 import { requireAuth } from '@/lib/auth';
-import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import { Music, Users, Heart, Home, Search, Plus, LogOut } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -12,10 +11,7 @@ export default async function DashboardLayout({
 }) {
   const user = await requireAuth();
 
-  const handleLogout = async () => {
-    'use server';
-    // This will be handled by the logout API route
-  };
+
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900">

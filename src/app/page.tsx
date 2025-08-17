@@ -1,7 +1,7 @@
 import { getCurrentUser } from '@/lib/auth';
 import { redirect } from 'next/navigation';
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Music, Users, Heart, TrendingUp, Play, Sparkles } from "lucide-react";
 import Link from "next/link";
@@ -114,7 +114,7 @@ export default async function Home() {
               </div>
               <CardTitle className="text-white">Music Discovery</CardTitle>
               <CardDescription className="text-gray-400">
-                Discover new tracks and artists through your friends' listening habits
+                Discover new tracks and artists through your friends&apos; listening habits
               </CardDescription>
             </CardHeader>
           </Card>
