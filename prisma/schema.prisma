@@ -15,13 +15,15 @@ datasource db {
 
 model User {
   id            String    @id @default(cuid())
-  clerkId       String    @unique
-  spotifyId     String?   @unique
+  spotifyId     String    @unique
   email         String    @unique
   displayName   String
   profileImage  String?
   country       String?
   product       String?   // Spotify subscription type (premium/free)
+  accessToken   String?   // Encrypted Spotify access token
+  refreshToken  String?   // Encrypted Spotify refresh token
+  tokenExpiresAt DateTime? // When the access token expires
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 

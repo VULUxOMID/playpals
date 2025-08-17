@@ -11,9 +11,9 @@ if (process.env.NODE_ENV !== 'production') {
 }
 
 // Database utility functions
-export async function getUserByClerkId(clerkId: string) {
+export async function getUserBySpotifyId(spotifyId: string) {
   return await prisma.user.findUnique({
-    where: { clerkId },
+    where: { spotifyId },
     include: {
       playlists: true,
       friends: {
@@ -31,13 +31,15 @@ export async function getUserByClerkId(clerkId: string) {
 }
 
 export async function createUser(data: {
-  clerkId: string;
+  spotifyId: string;
   email: string;
   displayName: string;
   profileImage?: string;
-  spotifyId?: string;
   country?: string;
   product?: string;
+  accessToken?: string;
+  refreshToken?: string;
+  tokenExpiresAt?: Date;
 }) {
   return await prisma.user.create({
     data,
@@ -47,16 +49,18 @@ export async function createUser(data: {
   });
 }
 
-export async function updateUser(clerkId: string, data: Partial<{
+export async function updateUser(spotifyId: string, data: Partial<{
   email: string;
   displayName: string;
   profileImage: string;
-  spotifyId: string;
   country: string;
   product: string;
+  accessToken: string;
+  refreshToken: string;
+  tokenExpiresAt: Date;
 }>) {
   return await prisma.user.update({
-    where: { clerkId },
+    where: { spotifyId },
     data,
     include: {
       playlists: true,
@@ -64,16 +68,21 @@ export async function updateUser(clerkId: string, data: Partial<{
   });
 }
 
-export async function getOrCreateUser(clerkId: string, userData: {
+export async function getOrCreateUser(spotifyId: string, userData: {
   email: string;
   displayName: string;
   profileImage?: string;
+  country?: string;
+  product?: string;
+  accessToken?: string;
+  refreshToken?: string;
+  tokenExpiresAt?: Date;
 }) {
-  let user = await getUserByClerkId(clerkId);
+  let user = await getUserBySpotifyId(spotifyId);
   
   if (!user) {
     user = await createUser({
-      clerkId,
+      spotifyId,
       ...userData,
     });
   }

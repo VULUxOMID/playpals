@@ -1,4 +1,4 @@
-import { currentUser } from '@clerk/nextjs/server';
+import { getCurrentUser } from '@/lib/auth';
 import { redirect } from 'next/navigation';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -7,7 +7,7 @@ import { Music, Users, Heart, TrendingUp, Play, Sparkles } from "lucide-react";
 import Link from "next/link";
 
 export default async function Home() {
-  const user = await currentUser();
+  const user = await getCurrentUser();
   
   // Redirect authenticated users to dashboard
   if (user) {
@@ -32,7 +32,7 @@ export default async function Home() {
             <a href="#about" className="text-gray-300 hover:text-white transition-colors">
               About
             </a>
-            <Link href="/sign-in">
+            <Link href="/auth/login">
               <Button variant="outline" className="border-green-500 text-green-500 hover:bg-green-500 hover:text-white">
                 Sign In
               </Button>
@@ -60,15 +60,15 @@ export default async function Home() {
           </p>
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link href="/sign-up">
+            <Link href="/auth/login">
               <Button size="lg" className="bg-green-500 hover:bg-green-600 text-white px-8 py-3">
                 <Play className="w-5 h-5 mr-2" />
                 Start Listening Together
               </Button>
             </Link>
-            <Link href="/sign-in">
+            <Link href="/auth/login">
               <Button size="lg" variant="outline" className="border-gray-600 text-gray-300 hover:bg-gray-800 px-8 py-3">
-                Sign In
+                Sign In with Spotify
               </Button>
             </Link>
           </div>
@@ -167,12 +167,12 @@ export default async function Home() {
             Join thousands of music lovers who are already discovering and sharing music together.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link href="/sign-up">
+            <Link href="/auth/login">
               <Button size="lg" className="bg-green-500 hover:bg-green-600 text-white px-8 py-3">
                 Get Started Free
               </Button>
             </Link>
-            <Link href="/sign-in">
+            <Link href="/auth/login">
               <Button size="lg" variant="outline" className="border-gray-600 text-gray-300 hover:bg-gray-800 px-8 py-3">
                 Already have an account? Sign In
               </Button>

@@ -1,36 +1,87 @@
-import { auth, currentUser } from '@clerk/nextjs/server';
+import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
-
-export async function requireAuth() {
-  const { userId } = await auth();
-  
-  if (!userId) {
-    redirect('/sign-in');
-  }
-  
-  return userId;
-}
+import { prisma } from './db';
 
 export async function getCurrentUser() {
-  const user = await currentUser();
+  const cookieStore = await cookies();
+  const sessionId = cookieStore.get('session')?.value;
+  
+  if (!sessionId) {
+    return null;
+  }
+
+  try {
+    const user = await prisma.user.findUnique({
+      where: { id: sessionId },
+    });
+    
+    return user;
+  } catch (error) {
+    console.error('Error fetching user:', error);
+    return null;
+  }
+}
+
+export async function requireAuth() {
+  const user = await getCurrentUser();
+  
+  if (!user) {
+    redirect('/auth/login');
+  }
+  
   return user;
 }
 
-export async function requireSpotifyAuth() {
-  const user = await currentUser();
-  
-  if (!user) {
-    redirect('/sign-in');
+export async function logout() {
+  const cookieStore = await cookies();
+  cookieStore.delete('session');
+}
+
+export async function refreshUserToken(userId: string) {
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+  });
+
+  if (!user?.refreshToken) {
+    throw new Error('No refresh token available');
   }
-  
-  // Check if user has connected Spotify
-  const spotifyConnected = user.externalAccounts?.some(
-    account => account.provider === 'spotify'
-  );
-  
-  if (!spotifyConnected) {
-    redirect('/connect-spotify');
+
+  try {
+    const { spotifyApi } = await import('./spotify');
+    spotifyApi.setRefreshToken(user.refreshToken);
+    
+    const data = await spotifyApi.refreshAccessToken();
+    const { access_token, expires_in } = data.body;
+
+    // Update user with new token
+    await prisma.user.update({
+      where: { id: userId },
+      data: {
+        accessToken: access_token,
+        tokenExpiresAt: new Date(Date.now() + expires_in * 1000),
+      },
+    });
+
+    return access_token;
+  } catch (error) {
+    console.error('Error refreshing token:', error);
+    throw error;
   }
-  
-  return user;
+}
+
+export async function getValidAccessToken(userId: string) {
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+  });
+
+  if (!user?.accessToken) {
+    throw new Error('No access token available');
+  }
+
+  // Check if token is expired (with 5 minute buffer)
+  if (user.tokenExpiresAt && user.tokenExpiresAt.getTime() - 5 * 60 * 1000 < Date.now()) {
+    return await refreshUserToken(userId);
+  }
+
+  return user.accessToken;
 }

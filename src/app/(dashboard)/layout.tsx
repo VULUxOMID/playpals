@@ -1,19 +1,21 @@
-import { auth } from '@clerk/nextjs/server';
+import { requireAuth } from '@/lib/auth';
 import { redirect } from 'next/navigation';
-import { UserButton } from '@clerk/nextjs';
 import Link from 'next/link';
-import { Music, Users, Heart, Home, Search, Plus } from 'lucide-react';
+import { Music, Users, Heart, Home, Search, Plus, LogOut } from 'lucide-react';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Button } from '@/components/ui/button';
 
 export default async function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const { userId } = await auth();
-  
-  if (!userId) {
-    redirect('/sign-in');
-  }
+  const user = await requireAuth();
+
+  const handleLogout = async () => {
+    'use server';
+    // This will be handled by the logout API route
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900">
@@ -31,13 +33,26 @@ export default async function DashboardLayout({
             </div>
             
             <div className="flex items-center space-x-4">
-              <UserButton 
-                appearance={{
-                  elements: {
-                    userButtonAvatarBox: "w-8 h-8",
-                  }
-                }}
-              />
+              <div className="flex items-center space-x-3">
+                <Avatar className="h-8 w-8">
+                  <AvatarImage src={user.profileImage || undefined} />
+                  <AvatarFallback>
+                    {user.displayName?.charAt(0).toUpperCase() || 'U'}
+                  </AvatarFallback>
+                </Avatar>
+                <span className="text-white text-sm font-medium">{user.displayName}</span>
+              </div>
+              
+              <form action="/api/auth/logout" method="POST">
+                <Button 
+                  type="submit"
+                  variant="ghost" 
+                  size="sm"
+                  className="text-gray-400 hover:text-white hover:bg-gray-700/50"
+                >
+                  <LogOut className="w-4 h-4" />
+                </Button>
+              </form>
             </div>
           </div>
         </div>

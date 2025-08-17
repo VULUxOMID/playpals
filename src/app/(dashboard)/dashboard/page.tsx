@@ -1,4 +1,4 @@
-import { currentUser } from '@clerk/nextjs/server';
+import { getCurrentUser } from '@/lib/auth';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -6,7 +6,7 @@ import { Music, Users, Heart, TrendingUp, Play, Clock, Plus, Search } from 'luci
 import Link from 'next/link';
 
 export default async function DashboardPage() {
-  const user = await currentUser();
+  const user = await getCurrentUser();
 
   if (!user) {
     return null;
@@ -18,7 +18,7 @@ export default async function DashboardPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-white">
-            Welcome back, {user.firstName || user.username || 'Music Lover'}! 🎵
+            Welcome back, {user.displayName || 'Music Lover'}! 🎵
           </h1>
           <p className="text-gray-400 mt-2">
             Ready to discover some amazing music with your friends?
