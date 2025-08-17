@@ -35,6 +35,7 @@ model User {
   sessions      Session[]
   listeningHistory ListeningHistory[]
   sessionParticipants SessionParticipant[]
+  userSessions  UserSession[] // Sessions where user is authenticated
 
   @@map("users")
 }
@@ -181,6 +182,23 @@ model ListeningHistory {
   track     Track    @relation(fields: [trackId], references: [id], onDelete: Cascade)
 
   @@map("listening_history")
+}
+
+// ===== SESSION MANAGEMENT =====
+
+model UserSession {
+  id          String   @id @default(cuid())
+  userId      String
+  sessionTokenHash String  @unique // HMAC hash of the session token
+  expiresAt   DateTime
+  createdAt   DateTime @default(now())
+  lastUsedAt  DateTime @default(now())
+  isActive    Boolean  @default(true)
+
+  // Relations
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_sessions")
 }
 
 // ===== ENUMS =====

@@ -1,18 +1,32 @@
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { prisma } from './db';
+import { verifySessionToken, validateSession } from './session';
 
 export async function getCurrentUser() {
   const cookieStore = await cookies();
-  const sessionId = cookieStore.get('session')?.value;
+  const sessionToken = cookieStore.get('session')?.value;
   
-  if (!sessionId) {
+  if (!sessionToken) {
     return null;
   }
 
   try {
+    // First verify the JWT token
+    const decoded = verifySessionToken(sessionToken);
+    if (!decoded) {
+      return null;
+    }
+
+    // Then validate the session in the database
+    const session = await validateSession(decoded.sessionId);
+    if (!session) {
+      return null;
+    }
+
+    // Load the user
     const user = await prisma.user.findUnique({
-      where: { id: sessionId },
+      where: { id: session.userId },
     });
     
     return user;
@@ -34,6 +48,21 @@ export async function requireAuth() {
 
 export async function logout() {
   const cookieStore = await cookies();
+  const sessionToken = cookieStore.get('session')?.value;
+  
+  if (sessionToken) {
+    try {
+      const decoded = verifySessionToken(sessionToken);
+      if (decoded) {
+        // Invalidate the session in the database
+        const { invalidateSession } = await import('./session');
+        await invalidateSession(decoded.sessionId);
+      }
+    } catch (error) {
+      console.error('Error during logout:', error);
+    }
+  }
+  
   cookieStore.delete('session');
 }
 
@@ -53,7 +82,7 @@ export async function refreshUserToken(userId: string) {
     const data = await spotifyApi.refreshAccessToken();
     const { access_token, expires_in } = data.body;
 
-    // Update user with new token
+    // Update user with new token (will be encrypted automatically)
     await prisma.user.update({
       where: { id: userId },
       data: {

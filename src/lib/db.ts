@@ -1,13 +1,60 @@
-import { PrismaClient, ActivityType } from '../generated/prisma';
+import { PrismaClient } from '../generated/prisma';
+import { fieldEncryptionMiddleware } from 'prisma-field-encryption';
+import crypto from 'crypto';
 
-const globalForPrisma = globalThis as unknown as {
-  prisma: PrismaClient | undefined;
-};
+// Validate encryption key at startup
+function validateAndGetEncryptionKey(): string {
+  const key = process.env.FIELD_ENCRYPTION_KEY;
+  
+  if (!key) {
+    if (process.env.NODE_ENV === 'production') {
+      console.error('FIELD_ENCRYPTION_KEY is required in production');
+      process.exit(1);
+    } else {
+      throw new Error('FIELD_ENCRYPTION_KEY environment variable is required. Generate one using: npm run generate-keys');
+    }
+  }
+  
+  if (!validateEncryptionKey(key)) {
+    throw new Error('Invalid FIELD_ENCRYPTION_KEY format. Must be 64 hex characters (32 bytes)');
+  }
+  
+  return key;
+}
 
-export const prisma = globalForPrisma.prisma ?? new PrismaClient();
+// Initialize Prisma client with field encryption middleware
+const prisma = new PrismaClient();
 
-if (process.env.NODE_ENV !== 'production') {
-  globalForPrisma.prisma = prisma;
+// Configure field encryption middleware
+prisma.$use(
+  fieldEncryptionMiddleware({
+    // Fields to encrypt
+    fields: ['accessToken', 'refreshToken'],
+    // Encryption key from environment variable
+    encryptionKey: validateAndGetEncryptionKey(),
+  })
+);
+
+export { prisma };
+
+// Utility functions for encryption/decryption
+export function generateEncryptionKey(): string {
+  return crypto.randomBytes(32).toString('hex');
+}
+
+export function validateEncryptionKey(key: string): boolean {
+  // Check if key is a valid hex string with exactly 64 characters (32 bytes)
+  if (!key || !/^[0-9a-fA-F]{64}$/.test(key)) {
+    return false;
+  }
+  
+  try {
+    // Verify the hex decodes to exactly 32 bytes
+    const buffer = Buffer.from(key, 'hex');
+    return buffer.length === 32;
+  } catch (error) {
+    return false;
+  }
 }
 
 // Database utility functions

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { spotifyApi } from '@/lib/spotify';
 import { prisma } from '@/lib/db';
 import { cookies } from 'next/headers';
+import { createUserSession, createSessionToken } from '@/lib/session';
 
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
@@ -30,38 +31,57 @@ export async function GET(request: NextRequest) {
     const profile = await spotifyApi.getMe();
     const userData = profile.body;
 
+    // Extract and validate required fields with safe fallbacks
+    const email = userData.email ?? null;
+    const displayName = userData.display_name ?? `spotify:${userData.id}`;
+    const profileImage = Array.isArray(userData.images) && userData.images[0]?.url 
+      ? userData.images[0].url 
+      : null;
+    const country = userData.country ?? null;
+    const product = userData.product ?? null;
+    const expiresIn = Number(expires_in) || 0;
+    
+    // Validate required fields
+    if (!email) {
+      return NextResponse.redirect(new URL('/auth/error?error=email_required', request.url));
+    }
+
     // Create or update user
     const user = await prisma.user.upsert({
       where: { spotifyId: userData.id },
       update: {
-        email: userData.email,
-        displayName: userData.display_name,
-        profileImage: userData.images?.[0]?.url,
-        country: userData.country,
-        product: userData.product,
-        accessToken: access_token, // In production, encrypt this
-        refreshToken: refresh_token, // In production, encrypt this
-        tokenExpiresAt: new Date(Date.now() + expires_in * 1000),
+        email,
+        displayName,
+        profileImage,
+        country,
+        product,
+        accessToken: access_token, // Will be encrypted automatically
+        refreshToken: refresh_token, // Will be encrypted automatically
+        tokenExpiresAt: expiresIn > 0 ? new Date(Date.now() + expiresIn * 1000) : null,
       },
       create: {
         spotifyId: userData.id,
-        email: userData.email,
-        displayName: userData.display_name,
-        profileImage: userData.images?.[0]?.url,
-        country: userData.country,
-        product: userData.product,
-        accessToken: access_token, // In production, encrypt this
-        refreshToken: refresh_token, // In production, encrypt this
-        tokenExpiresAt: new Date(Date.now() + expires_in * 1000),
+        email,
+        displayName,
+        profileImage,
+        country,
+        product,
+        accessToken: access_token, // Will be encrypted automatically
+        refreshToken: refresh_token, // Will be encrypted automatically
+        tokenExpiresAt: expiresIn > 0 ? new Date(Date.now() + expiresIn * 1000) : null,
       },
     });
+
+    // Create secure session
+    const { sessionToken, sessionId } = await createUserSession(user.id);
+    const jwtToken = createSessionToken(user.id, sessionId);
 
     // Clear state cookie
     const response = NextResponse.redirect(new URL('/dashboard', request.url));
     response.cookies.delete('spotify_state');
     
-    // Set session cookie
-    response.cookies.set('session', user.id, {
+    // Set secure session cookie
+    response.cookies.set('session', jwtToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',

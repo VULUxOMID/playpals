@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { spotifyApi } from '@/lib/spotify';
+import { generateSecureState } from '@/lib/session';
 
 export async function GET(request: NextRequest) {
   const scopes = [
@@ -18,7 +19,7 @@ export async function GET(request: NextRequest) {
     'user-library-modify',
   ];
 
-  const state = Math.random().toString(36).substring(7);
+  const state = generateSecureState();
   
   // Store state in session/cookie for security
   const response = NextResponse.redirect(spotifyApi.createAuthorizeURL(scopes, state));
