@@ -1,8 +1,10 @@
 import { getCurrentUser } from '@/lib/auth';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+
 import { Music, Users, Heart, Play, Clock, Plus, Search } from 'lucide-react';
+import CurrentlyPlaying from '@/components/CurrentlyPlaying';
+import ActivityFeed from '@/components/ActivityFeed';
 import Link from 'next/link';
 
 export default async function DashboardPage() {
@@ -82,53 +84,7 @@ export default async function DashboardPage() {
       {/* Recent Activity & Quick Actions */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Recent Activity */}
-        <Card className="bg-gray-800/50 border-gray-700">
-          <CardHeader>
-            <CardTitle className="text-white">Recent Activity</CardTitle>
-            <CardDescription className="text-gray-400">
-              What&apos;s happening in your music world
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex items-center space-x-4">
-              <Avatar className="h-8 w-8">
-                <AvatarFallback>JD</AvatarFallback>
-              </Avatar>
-              <div className="flex-1">
-                <p className="text-sm text-white">
-                  <span className="font-medium">John Doe</span> started listening to{' '}
-                  <span className="text-green-400">&quot;Bohemian Rhapsody&quot;</span>
-                </p>
-                <p className="text-xs text-gray-400">2 minutes ago</p>
-              </div>
-            </div>
-
-            <div className="flex items-center space-x-4">
-              <Avatar className="h-8 w-8">
-                <AvatarFallback>AS</AvatarFallback>
-              </Avatar>
-              <div className="flex-1">
-                <p className="text-sm text-white">
-                  <span className="font-medium">Alice Smith</span> added{' '}
-                  <span className="text-green-400">&quot;Shape of You&quot;</span> to your playlist
-                </p>
-                <p className="text-xs text-gray-400">15 minutes ago</p>
-              </div>
-            </div>
-
-            <div className="flex items-center space-x-4">
-              <Avatar className="h-8 w-8">
-                <AvatarFallback>MJ</AvatarFallback>
-              </Avatar>
-              <div className="flex-1">
-                <p className="text-sm text-white">
-                  <span className="font-medium">Mike Johnson</span> joined your listening session
-                </p>
-                <p className="text-xs text-gray-400">1 hour ago</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        <ActivityFeed />
 
         {/* Quick Actions */}
         <Card className="bg-gray-800/50 border-gray-700">
@@ -195,31 +151,7 @@ export default async function DashboardPage() {
       </div>
 
       {/* Currently Playing */}
-      <Card className="bg-gray-800/50 border-gray-700">
-        <CardHeader>
-          <CardTitle className="text-white">Currently Playing</CardTitle>
-          <CardDescription className="text-gray-400">
-            What you&apos;re listening to right now
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="flex items-center space-x-4">
-            <div className="w-16 h-16 bg-gray-600 rounded-lg flex items-center justify-center">
-              <Music className="w-8 h-8 text-gray-400" />
-            </div>
-            <div className="flex-1">
-              <p className="text-white font-medium">Not currently playing</p>
-              <p className="text-sm text-gray-400">Connect your Spotify account to see what you&apos;re listening to</p>
-            </div>
-            <Link 
-              href="/connect-spotify"
-              className="px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg transition-colors"
-            >
-              Connect Spotify
-            </Link>
-          </div>
-        </CardContent>
-      </Card>
+      <CurrentlyPlaying />
     </div>
   );
 }
