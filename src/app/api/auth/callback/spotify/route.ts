@@ -1,10 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { spotifyApi } from '@/lib/spotify';
+import { spotifyApi, validateSpotifyConfig } from '@/lib/spotify';
 import { prisma } from '@/lib/db';
 import { cookies } from 'next/headers';
 import { createUserSession, createSessionToken } from '@/lib/session';
 
 export async function GET(request: NextRequest) {
+  // Validate Spotify configuration at runtime
+  validateSpotifyConfig();
+  
   const searchParams = request.nextUrl.searchParams;
   const code = searchParams.get('code');
   const state = searchParams.get('state');

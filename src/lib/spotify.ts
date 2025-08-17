@@ -1,28 +1,33 @@
 import SpotifyWebApi from 'spotify-web-api-node';
 
-// Validate required environment variables
+// Get environment variables
 const SPOTIFY_CLIENT_ID = process.env.SPOTIFY_CLIENT_ID;
 const SPOTIFY_CLIENT_SECRET = process.env.SPOTIFY_CLIENT_SECRET;
 const NEXT_PUBLIC_APP_URL = process.env.NEXT_PUBLIC_APP_URL;
 
-if (!SPOTIFY_CLIENT_ID) {
-  throw new Error('SPOTIFY_CLIENT_ID environment variable is required. Please set it in your .env file.');
-}
-
-if (!SPOTIFY_CLIENT_SECRET) {
-  throw new Error('SPOTIFY_CLIENT_SECRET environment variable is required. Please set it in your .env file.');
-}
-
-if (!NEXT_PUBLIC_APP_URL) {
-  throw new Error('NEXT_PUBLIC_APP_URL environment variable is required. Please set it in your .env file.');
-}
-
-// Initialize Spotify API client
+// Initialize Spotify API client with fallbacks for build time
 export const spotifyApi = new SpotifyWebApi({
-  clientId: SPOTIFY_CLIENT_ID,
-  clientSecret: SPOTIFY_CLIENT_SECRET,
-  redirectUri: `${NEXT_PUBLIC_APP_URL}/api/auth/callback/spotify`,
+  clientId: SPOTIFY_CLIENT_ID || 'placeholder-client-id',
+  clientSecret: SPOTIFY_CLIENT_SECRET || 'placeholder-client-secret',
+  redirectUri: NEXT_PUBLIC_APP_URL 
+    ? `${NEXT_PUBLIC_APP_URL}/api/auth/callback/spotify`
+    : 'http://localhost:3000/api/auth/callback/spotify',
 });
+
+// Validate environment variables at runtime
+export function validateSpotifyConfig() {
+  if (!SPOTIFY_CLIENT_ID) {
+    throw new Error('SPOTIFY_CLIENT_ID environment variable is required. Please set it in your .env file.');
+  }
+
+  if (!SPOTIFY_CLIENT_SECRET) {
+    throw new Error('SPOTIFY_CLIENT_SECRET environment variable is required. Please set it in your .env file.');
+  }
+
+  if (!NEXT_PUBLIC_APP_URL) {
+    throw new Error('NEXT_PUBLIC_APP_URL environment variable is required. Please set it in your .env file.');
+  }
+}
 
 // Set access token for authenticated requests
 export function setSpotifyAccessToken(accessToken: string) {

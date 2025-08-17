@@ -1,8 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { spotifyApi } from '@/lib/spotify';
+import { spotifyApi, validateSpotifyConfig } from '@/lib/spotify';
 import { generateSecureState } from '@/lib/session';
 
 export async function GET(request: NextRequest) {
+  // Validate Spotify configuration at runtime
+  validateSpotifyConfig();
+  
   const scopes = [
     'user-read-private',
     'user-read-email',
